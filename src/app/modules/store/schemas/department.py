@@ -19,3 +19,4 @@ class DepartmentUpdate(BaseModel):
 
 class DepartmentModel(DepartmentBase):
     id: str
+    sellers_count: int = 0

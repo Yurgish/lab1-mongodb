@@ -29,6 +29,7 @@ class StoreUpdate(BaseModel):
 class StoreModel(StoreBase):
     id: str
     departments: list[DepartmentModel] = Field(default_factory=list)
+    departments_count: int = 0
 
     created_at: datetime
     updated_at: datetime

@@ -2,6 +2,7 @@ import uuid
 from datetime import datetime, timezone
 
 from app.common.errors import EntityNotFoundError, OperationError
+from app.common.query import QueryOptions
 from app.modules.seller.repositories import SellerRepository
 from app.modules.seller.schemas import SellerCreate, SellerModel, SellerUpdate
 from app.modules.store.repositories import StoreRepository
@@ -31,12 +32,14 @@ class SellerService:
             raise EntityNotFoundError(f"Seller '{seller_id}' not found.")
         return seller
 
-    def get_all(self) -> list[SellerModel]:
-        return self._seller_repository.get_all()
+    def get_all(self, options: QueryOptions | None = None) -> list[SellerModel]:
+        return self._seller_repository.get_all(options)
 
-    def get_by_department(self, store_id: str, department_id: str) -> list[SellerModel]:
+    def get_by_department(
+        self, store_id: str, department_id: str, options: QueryOptions | None = None
+    ) -> list[SellerModel]:
         self._validate_department(store_id, department_id)
-        return self._seller_repository.get_by_department(store_id, department_id)
+        return self._seller_repository.get_by_department(store_id, department_id, options)
 
     def update(self, seller_id: str, data: SellerUpdate) -> SellerModel:
         seller = self.get_by_id(seller_id)

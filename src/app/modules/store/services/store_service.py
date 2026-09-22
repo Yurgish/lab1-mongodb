@@ -2,6 +2,7 @@ import uuid
 from datetime import datetime, timezone
 
 from app.common.errors import EntityNotFoundError, OperationError
+from app.common.query import QueryOptions
 from app.modules.seller.repositories import SellerRepository
 from app.modules.store.repositories import StoreRepository
 from app.modules.store.schemas import StoreCreate, StoreModel, StoreUpdate
@@ -20,6 +21,7 @@ class StoreService:
             "_id": str(uuid.uuid4()),
             **data.model_dump(mode="python"),
             "departments": [],
+            "departments_count": 0,
             "created_at": now,
             "updated_at": now,
         }
@@ -31,8 +33,8 @@ class StoreService:
             raise EntityNotFoundError(f"Store '{store_id}' not found.")
         return store
 
-    def get_all(self) -> list[StoreModel]:
-        return self._store_repository.get_all()
+    def get_all(self, options: QueryOptions | None = None) -> list[StoreModel]:
+        return self._store_repository.get_all(options)
 
     def update(self, store_id: str, data: StoreUpdate) -> StoreModel:
         self.get_by_id(store_id)

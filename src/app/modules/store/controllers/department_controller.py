@@ -2,6 +2,7 @@ from collections.abc import Mapping
 
 from app.common.decorators import handle_errors
 from app.common.errors import AppError
+from app.common.query import QueryOptions
 from app.modules.store.schemas import DepartmentCreate, DepartmentUpdate
 from app.modules.store.services import DepartmentService
 
@@ -15,8 +16,8 @@ class DepartmentController:
         self._view.show_error(error.title, str(error))
 
     @handle_errors
-    def load(self, store_id: str) -> None:
-        self._view.show_departments(self._service.get_all(store_id))
+    def load(self, store_id: str, options: QueryOptions | None = None) -> None:
+        self._view.show_departments(self._service.get_all(store_id, options))
 
     @handle_errors
     def create(self, store_id: str, form_data: Mapping[str, object]) -> None:

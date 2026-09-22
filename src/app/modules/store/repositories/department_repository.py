@@ -5,7 +5,10 @@ from pymongo.collection import Collection
 
 from app.common.errors import EntityNotFoundError
 from app.common.mappers import map_document
+from app.common.query import QueryOptions, get_sort_spec, text_search
 from app.modules.store.schemas import DepartmentModel
+
+DEPARTMENT_SORT_FIELDS = {"name": "departments.name", "floor": "departments.floor"}
 
 
 class DepartmentRepository:
@@ -30,12 +33,14 @@ class DepartmentRepository:
             return None
         return map_document(document["departments"][0], DepartmentModel)
 
-    def get_all(self, store_id: str) -> list[DepartmentModel]:
+    def get_all(self, store_id: str, options: QueryOptions | None = None) -> list[DepartmentModel]:
+        options = options or QueryOptions(sort_by="name")
+        search_stage = text_search(options.search, ("departments.name",))
         documents = self._collection.aggregate(
             [
-                {"$match": {"_id": store_id}},
+                {"$match": {"_id": store_id, **search_stage}},
                 {"$unwind": "$departments"},
-                {"$sort": {"departments.name": 1}},
+                {"$sort": dict(get_sort_spec(options, DEPARTMENT_SORT_FIELDS))},
                 {"$replaceRoot": {"newRoot": "$departments"}},
             ]
         )

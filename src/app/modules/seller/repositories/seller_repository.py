@@ -4,7 +4,17 @@ from typing import Any
 from pymongo.collection import Collection
 
 from app.common.mappers import map_document
+from app.common.query import QueryOptions, get_sort_spec, text_search
 from app.modules.seller.schemas import SellerModel
+
+SELLER_SORT_FIELDS = {
+    "last_name": "last_name",
+    "first_name": "first_name",
+    "position": "position",
+    "salary": "salary",
+    "age": "age",
+    "created_at": "created_at",
+}
 
 
 class SellerRepository:
@@ -22,16 +32,23 @@ class SellerRepository:
         document = self._collection.find_one({"_id": seller_id})
         return None if document is None else map_document(document, SellerModel)
 
-    def get_all(self) -> list[SellerModel]:
-        documents = self._collection.find().sort(
-            [("store_id", 1), ("last_name", 1), ("first_name", 1)]
-        )
+    def get_all(self, options: QueryOptions | None = None) -> list[SellerModel]:
+        options = options or QueryOptions(sort_by="last_name")
+        documents = self._collection.find(
+            text_search(options.search, ("first_name", "last_name", "email", "position"))
+        ).sort(get_sort_spec(options, SELLER_SORT_FIELDS))
         return [map_document(document, SellerModel) for document in documents]
 
-    def get_by_department(self, store_id: str, department_id: str) -> list[SellerModel]:
-        documents = self._collection.find(
-            {"store_id": store_id, "department_id": department_id}
-        ).sort([("last_name", 1), ("first_name", 1)])
+    def get_by_department(
+        self, store_id: str, department_id: str, options: QueryOptions | None = None
+    ) -> list[SellerModel]:
+        options = options or QueryOptions(sort_by="last_name")
+        query = {
+            "store_id": store_id,
+            "department_id": department_id,
+            **text_search(options.search, ("first_name", "last_name", "email", "position")),
+        }
+        documents = self._collection.find(query).sort(get_sort_spec(options, SELLER_SORT_FIELDS))
         return [map_document(document, SellerModel) for document in documents]
 
     def update(self, seller_id: str, updates: Mapping[str, Any]) -> SellerModel | None:
@@ -51,3 +68,8 @@ class SellerRepository:
             {"store_id": store_id, "department_id": department_id}
         )
         return result.deleted_count
+
+    def count_by_department(self, store_id: str, department_id: str) -> int:
+        return self._collection.count_documents(
+            {"store_id": store_id, "department_id": department_id}
+        )
