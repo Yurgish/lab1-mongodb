@@ -1,6 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 
+from app.common.errors import EntityNotFoundError, OperationError
 from app.modules.seller.repositories import SellerRepository
 from app.modules.seller.schemas import SellerCreate, SellerModel, SellerUpdate
 from app.modules.store.repositories import StoreRepository
@@ -27,7 +28,7 @@ class SellerService:
     def get_by_id(self, seller_id: str) -> SellerModel:
         seller = self._seller_repository.get_by_id(seller_id)
         if seller is None:
-            raise LookupError(f"Seller '{seller_id}' not found.")
+            raise EntityNotFoundError(f"Seller '{seller_id}' not found.")
         return seller
 
     def get_all(self) -> list[SellerModel]:
@@ -44,17 +45,17 @@ class SellerService:
         updates["updated_at"] = datetime.now(timezone.utc)
         updated = self._seller_repository.update(seller_id, updates)
         if updated is None:
-            raise RuntimeError(f"Seller '{seller_id}' disappeared while updating.")
+            raise OperationError(f"Seller '{seller_id}' disappeared while updating.")
         return updated
 
     def delete(self, seller_id: str) -> None:
         self.get_by_id(seller_id)
         if not self._seller_repository.delete(seller_id):
-            raise RuntimeError(f"Seller '{seller_id}' could not be deleted.")
+            raise OperationError(f"Seller '{seller_id}' could not be deleted.")
 
     def _validate_department(self, store_id: str, department_id: str) -> None:
         store = self._store_repository.get_by_id(store_id)
         if store is None:
-            raise LookupError(f"Store '{store_id}' not found.")
+            raise EntityNotFoundError(f"Store '{store_id}' not found.")
         if not any(department.id == department_id for department in store.departments):
-            raise LookupError(f"Department '{department_id}' not found.")
+            raise EntityNotFoundError(f"Department '{department_id}' not found.")

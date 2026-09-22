@@ -1,6 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 
+from app.common.errors import EntityNotFoundError, OperationError
 from app.modules.seller.repositories import SellerRepository
 from app.modules.store.repositories import StoreRepository
 from app.modules.store.schemas import StoreCreate, StoreModel, StoreUpdate
@@ -27,7 +28,7 @@ class StoreService:
     def get_by_id(self, store_id: str) -> StoreModel:
         store = self._store_repository.get_by_id(store_id)
         if store is None:
-            raise LookupError(f"Store '{store_id}' not found.")
+            raise EntityNotFoundError(f"Store '{store_id}' not found.")
         return store
 
     def get_all(self) -> list[StoreModel]:
@@ -41,11 +42,11 @@ class StoreService:
         updates["updated_at"] = datetime.now(timezone.utc)
         updated = self._store_repository.update(store_id, updates)
         if updated is None:
-            raise RuntimeError(f"Store '{store_id}' disappeared while updating.")
+            raise OperationError(f"Store '{store_id}' disappeared while updating.")
         return updated
 
     def delete(self, store_id: str) -> None:
         self.get_by_id(store_id)
         self._seller_repository.delete_by_store_id(store_id)
         if not self._store_repository.delete(store_id):
-            raise RuntimeError(f"Store '{store_id}' could not be deleted.")
+            raise OperationError(f"Store '{store_id}' could not be deleted.")

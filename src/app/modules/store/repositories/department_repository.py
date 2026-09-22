@@ -3,6 +3,7 @@ from typing import Any
 
 from pymongo.collection import Collection
 
+from app.common.errors import EntityNotFoundError
 from app.common.mappers import map_document
 from app.modules.store.schemas import DepartmentModel
 
@@ -17,7 +18,7 @@ class DepartmentRepository:
             {"_id": store_id}, {"$push": {"departments": department}}
         )
         if result.matched_count == 0:
-            raise LookupError(f"Store '{store_id}' not found.")
+            raise EntityNotFoundError(f"Store '{store_id}' not found.")
         return map_document(department, DepartmentModel)
 
     def get_by_id(self, store_id: str, department_id: str) -> DepartmentModel | None:
