@@ -34,6 +34,10 @@ class SellerService:
     def get_all(self) -> list[SellerModel]:
         return self._seller_repository.get_all()
 
+    def get_by_department(self, store_id: str, department_id: str) -> list[SellerModel]:
+        self._validate_department(store_id, department_id)
+        return self._seller_repository.get_by_department(store_id, department_id)
+
     def update(self, seller_id: str, data: SellerUpdate) -> SellerModel:
         seller = self.get_by_id(seller_id)
         updates = data.model_dump(exclude_unset=True, mode="python")

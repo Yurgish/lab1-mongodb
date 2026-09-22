@@ -28,6 +28,12 @@ class SellerRepository:
         )
         return [map_document(document, SellerModel) for document in documents]
 
+    def get_by_department(self, store_id: str, department_id: str) -> list[SellerModel]:
+        documents = self._collection.find(
+            {"store_id": store_id, "department_id": department_id}
+        ).sort([("last_name", 1), ("first_name", 1)])
+        return [map_document(document, SellerModel) for document in documents]
+
     def update(self, seller_id: str, updates: Mapping[str, Any]) -> SellerModel | None:
         self._collection.update_one({"_id": seller_id}, {"$set": dict(updates)})
         return self.get_by_id(seller_id)

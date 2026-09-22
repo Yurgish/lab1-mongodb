@@ -23,7 +23,8 @@ class StoreRepository:
         return None if document is None else map_document(document, StoreModel)
 
     def get_all(self) -> list[StoreModel]:
-        return [map_document(document, StoreModel) for document in self._collection.find()]
+        documents = self._collection.find().sort([("name", 1)])
+        return [map_document(document, StoreModel) for document in documents]
 
     def update(self, store_id: str, updates: Mapping[str, Any]) -> StoreModel | None:
         self._collection.update_one({"_id": store_id}, {"$set": dict(updates)})
