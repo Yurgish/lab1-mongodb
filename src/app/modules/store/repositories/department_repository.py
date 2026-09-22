@@ -31,10 +31,15 @@ class DepartmentRepository:
         return map_document(document["departments"][0], DepartmentModel)
 
     def get_all(self, store_id: str) -> list[DepartmentModel]:
-        document = self._collection.find_one({"_id": store_id}, {"departments": 1})
-        if document is None:
-            return []
-        return [map_document(item, DepartmentModel) for item in document.get("departments", [])]
+        documents = self._collection.aggregate(
+            [
+                {"$match": {"_id": store_id}},
+                {"$unwind": "$departments"},
+                {"$sort": {"departments.name": 1}},
+                {"$replaceRoot": {"newRoot": "$departments"}},
+            ]
+        )
+        return [map_document(document, DepartmentModel) for document in documents]
 
     def update(
         self, store_id: str, department_id: str, updates: Mapping[str, Any]

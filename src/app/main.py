@@ -9,6 +9,7 @@ def main() -> None:
 
     try:
         database.connect()
+        database.create_indexes()
 
         print("MongoDB connected!")
         print(f"Database: {settings.mongo_database}")
