@@ -8,9 +8,11 @@ from app.common.query import QueryOptions, get_sort_spec, text_search
 from app.modules.store.schemas import StoreModel
 
 STORE_SORT_FIELDS = {
+    "id": "_id",
     "name": "name",
     "city": "address.city",
     "street": "address.street",
+    "building": "address.building",
     "phone": "contact_phone",
     "departments": "departments_count",
     "created_at": "created_at",

@@ -3,17 +3,26 @@ from collections.abc import Mapping
 from app.common.decorators import handle_errors
 from app.common.errors import AppError
 from app.common.query import QueryOptions
+from app.modules.controller_events import (
+    ControllerEventHandler,
+    Failed,
+    Loaded,
+    Succeeded,
+    discard_event,
+)
 from app.modules.seller.schemas import SellerCreate, SellerUpdate
 from app.modules.seller.services import SellerService
 
 
 class SellerController:
-    def __init__(self, view, service: SellerService) -> None:
-        self._view = view
+    def __init__(
+        self, service: SellerService, on_event: ControllerEventHandler | None = None
+    ) -> None:
         self._service = service
+        self._on_event = on_event or discard_event
 
     def _handle_error(self, error: AppError) -> None:
-        self._view.show_error(error.title, str(error))
+        self._on_event(Failed(error.title, str(error)))
 
     @handle_errors
     def load(
@@ -28,24 +37,24 @@ class SellerController:
             sellers = self._service.get_by_store(store_id, options)
         else:
             sellers = self._service.get_all(options)
-        self._view.show_sellers(sellers)
+        self._on_event(Loaded("sellers", sellers))
 
     @handle_errors
     def create(self, form_data: Mapping[str, object]) -> None:
         data = SellerCreate.model_validate(dict(form_data))
         self._service.create(data)
-        self._view.show_success("Seller created.")
+        self._on_event(Succeeded("Seller created."))
         self.load()
 
     @handle_errors
     def update(self, seller_id: str, form_data: Mapping[str, object]) -> None:
         data = SellerUpdate.model_validate(dict(form_data))
         self._service.update(seller_id, data)
-        self._view.show_success("Seller updated.")
+        self._on_event(Succeeded("Seller updated."))
         self.load()
 
     @handle_errors
     def delete(self, seller_id: str) -> None:
         self._service.delete(seller_id)
-        self._view.show_success("Seller deleted.")
+        self._on_event(Succeeded("Seller deleted."))
         self.load()

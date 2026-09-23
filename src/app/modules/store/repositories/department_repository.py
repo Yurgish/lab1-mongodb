@@ -9,9 +9,11 @@ from app.common.query import QueryOptions, get_sort_spec, text_search
 from app.modules.store.schemas import DepartmentModel
 
 DEPARTMENT_SORT_FIELDS = {
+    "id": "departments.id",
     "name": "departments.name",
     "floor": "departments.floor",
     "description": "departments.description",
+    "sellers": "departments.sellers_count",
     "created_at": "departments.created_at",
     "updated_at": "departments.updated_at",
 }

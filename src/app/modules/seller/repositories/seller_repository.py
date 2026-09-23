@@ -8,9 +8,13 @@ from app.common.query import QueryOptions, get_sort_spec, text_search
 from app.modules.seller.schemas import SellerModel
 
 SELLER_SORT_FIELDS = {
+    "id": "_id",
     "last_name": "last_name",
     "first_name": "first_name",
     "position": "position",
+    "phone": "phone",
+    "store_id": "store_id",
+    "department_id": "department_id",
     "salary": "salary",
     "age": "age",
     "email": "email",
