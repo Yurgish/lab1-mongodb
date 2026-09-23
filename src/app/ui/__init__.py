@@ -1,1 +1,1 @@
-"""Tkinter user interface for the application."""
+"""PySide6 user interface for the application."""
