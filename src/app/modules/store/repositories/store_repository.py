@@ -9,10 +9,15 @@ from app.modules.store.schemas import StoreModel
 
 STORE_SORT_FIELDS = {
     "name": "name",
+    "city": "address.city",
+    "street": "address.street",
+    "phone": "contact_phone",
+    "departments": "departments_count",
     "created_at": "created_at",
     "updated_at": "updated_at",
     "is_active": "is_active",
 }
+STORE_SEARCH_FIELDS = ("name", "address.city", "address.street", "contact_phone")
 
 
 class StoreRepository:
@@ -32,7 +37,7 @@ class StoreRepository:
 
     def get_all(self, options: QueryOptions | None = None) -> list[StoreModel]:
         options = options or QueryOptions(sort_by="name")
-        documents = self._collection.find(text_search(options.search, ("name",))).sort(
+        documents = self._collection.find(text_search(options.search, STORE_SEARCH_FIELDS)).sort(
             get_sort_spec(options, STORE_SORT_FIELDS)
         )
         return [map_document(document, StoreModel) for document in documents]

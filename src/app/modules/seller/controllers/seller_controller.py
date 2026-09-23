@@ -24,6 +24,8 @@ class SellerController:
     ) -> None:
         if store_id is not None and department_id is not None:
             sellers = self._service.get_by_department(store_id, department_id, options)
+        elif store_id is not None:
+            sellers = self._service.get_by_store(store_id, options)
         else:
             sellers = self._service.get_all(options)
         self._view.show_sellers(sellers)

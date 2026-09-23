@@ -41,6 +41,11 @@ class SellerService:
         self._validate_department(store_id, department_id)
         return self._seller_repository.get_by_department(store_id, department_id, options)
 
+    def get_by_store(self, store_id: str, options: QueryOptions | None = None) -> list[SellerModel]:
+        if self._store_repository.get_by_id(store_id) is None:
+            raise EntityNotFoundError(f"Store '{store_id}' not found.")
+        return self._seller_repository.get_by_store(store_id, options)
+
     def update(self, seller_id: str, data: SellerUpdate) -> SellerModel:
         seller = self.get_by_id(seller_id)
         updates = data.model_dump(exclude_unset=True, mode="python")

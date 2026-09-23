@@ -13,7 +13,9 @@ class QueryOptions:
 def get_sort_spec(
     options: QueryOptions, allowed_fields: Mapping[str, str]
 ) -> list[tuple[str, int]]:
-    field = allowed_fields.get(options.sort_by, next(iter(allowed_fields.values())))
+    field = allowed_fields.get(options.sort_by)
+    if field is None:
+        field = next(iter(allowed_fields.values()))
     return [(field, -1 if options.descending else 1)]
 
 

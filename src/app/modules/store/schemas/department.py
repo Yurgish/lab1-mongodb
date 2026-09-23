@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel, Field
 
 
@@ -20,3 +22,5 @@ class DepartmentUpdate(BaseModel):
 class DepartmentModel(DepartmentBase):
     id: str
     sellers_count: int = 0
+    created_at: datetime
+    updated_at: datetime

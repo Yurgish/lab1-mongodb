@@ -13,8 +13,11 @@ SELLER_SORT_FIELDS = {
     "position": "position",
     "salary": "salary",
     "age": "age",
+    "email": "email",
     "created_at": "created_at",
+    "updated_at": "updated_at",
 }
+SELLER_SEARCH_FIELDS = ("first_name", "last_name", "email", "position")
 
 
 class SellerRepository:
@@ -34,9 +37,9 @@ class SellerRepository:
 
     def get_all(self, options: QueryOptions | None = None) -> list[SellerModel]:
         options = options or QueryOptions(sort_by="last_name")
-        documents = self._collection.find(
-            text_search(options.search, ("first_name", "last_name", "email", "position"))
-        ).sort(get_sort_spec(options, SELLER_SORT_FIELDS))
+        documents = self._collection.find(text_search(options.search, SELLER_SEARCH_FIELDS)).sort(
+            get_sort_spec(options, SELLER_SORT_FIELDS)
+        )
         return [map_document(document, SellerModel) for document in documents]
 
     def get_by_department(
@@ -46,8 +49,14 @@ class SellerRepository:
         query = {
             "store_id": store_id,
             "department_id": department_id,
-            **text_search(options.search, ("first_name", "last_name", "email", "position")),
+            **text_search(options.search, SELLER_SEARCH_FIELDS),
         }
+        documents = self._collection.find(query).sort(get_sort_spec(options, SELLER_SORT_FIELDS))
+        return [map_document(document, SellerModel) for document in documents]
+
+    def get_by_store(self, store_id: str, options: QueryOptions | None = None) -> list[SellerModel]:
+        options = options or QueryOptions(sort_by="last_name")
+        query = {"store_id": store_id, **text_search(options.search, SELLER_SEARCH_FIELDS)}
         documents = self._collection.find(query).sort(get_sort_spec(options, SELLER_SORT_FIELDS))
         return [map_document(document, SellerModel) for document in documents]
 

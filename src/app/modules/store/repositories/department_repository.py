@@ -8,7 +8,14 @@ from app.common.mappers import map_document
 from app.common.query import QueryOptions, get_sort_spec, text_search
 from app.modules.store.schemas import DepartmentModel
 
-DEPARTMENT_SORT_FIELDS = {"name": "departments.name", "floor": "departments.floor"}
+DEPARTMENT_SORT_FIELDS = {
+    "name": "departments.name",
+    "floor": "departments.floor",
+    "description": "departments.description",
+    "created_at": "departments.created_at",
+    "updated_at": "departments.updated_at",
+}
+DEPARTMENT_SEARCH_FIELDS = ("departments.name", "departments.description")
 
 
 class DepartmentRepository:
@@ -35,11 +42,12 @@ class DepartmentRepository:
 
     def get_all(self, store_id: str, options: QueryOptions | None = None) -> list[DepartmentModel]:
         options = options or QueryOptions(sort_by="name")
-        search_stage = text_search(options.search, ("departments.name",))
+        search_stage = text_search(options.search, DEPARTMENT_SEARCH_FIELDS)
         documents = self._collection.aggregate(
             [
-                {"$match": {"_id": store_id, **search_stage}},
+                {"$match": {"_id": store_id}},
                 {"$unwind": "$departments"},
+                {"$match": search_stage} if search_stage else {"$match": {}},
                 {"$sort": dict(get_sort_spec(options, DEPARTMENT_SORT_FIELDS))},
                 {"$replaceRoot": {"newRoot": "$departments"}},
             ]

@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime, timezone
 
 from app.common.errors import EntityNotFoundError, OperationError
 from app.common.query import QueryOptions
@@ -20,8 +21,15 @@ class DepartmentService:
 
     def create(self, store_id: str, data: DepartmentCreate) -> DepartmentModel:
         self._require_store(store_id)
+        now = datetime.now(timezone.utc)
         department = self._department_repository.create(
-            store_id, {"id": str(uuid.uuid4()), **data.model_dump(mode="python")}
+            store_id,
+            {
+                "id": str(uuid.uuid4()),
+                **data.model_dump(mode="python"),
+                "created_at": now,
+                "updated_at": now,
+            },
         )
         self._store_repository.change_departments_count(store_id, 1)
         return department
@@ -43,6 +51,10 @@ class DepartmentService:
             department.sellers_count = self._seller_repository.count_by_department(
                 store_id, department.id
             )
+        if options is not None and options.sort_by == "sellers":
+            departments.sort(key=lambda department: department.sellers_count)
+            if options.descending:
+                departments.reverse()
         return departments
 
     def update(self, store_id: str, department_id: str, data: DepartmentUpdate) -> DepartmentModel:
@@ -50,6 +62,7 @@ class DepartmentService:
         updates = data.model_dump(exclude_unset=True, mode="python")
         if not updates:
             return self.get_by_id(store_id, department_id)
+        updates["updated_at"] = datetime.now(timezone.utc)
         updated = self._department_repository.update(store_id, department_id, updates)
         if updated is None:
             raise OperationError(f"Department '{department_id}' disappeared while updating.")
